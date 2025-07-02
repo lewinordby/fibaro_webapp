@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Temperaturlogg</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <h1>Temperaturlogger</h1>
+  <table>
+    <tr><th>Tidspunkt (UTC)</th><th>Temperatur (°C)</th></tr>
+    {% for row in logs %}
+    <tr><td>{{ row[0] }}</td><td>{{ row[1] }}</td></tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
