@@ -22,12 +22,9 @@ async def read_root(request: Request):
         conn = get_db_conn()
         cur = conn.cursor()
         cur.execute("SELECT timestamp, temperature FROM temperatures ORDER BY timestamp DESC LIMIT 100")
-        rows_raw = cur.fetchall()
+        rows = cur.fetchall()
         cur.close()
         conn.close()
-
-        # Konverter datetime til ISO-streng
-        rows = [(ts.isoformat(), temp) for ts, temp in rows_raw]
 
         return templates.TemplateResponse("index.html", {"request": request, "rows": rows})
     except Exception as e:
