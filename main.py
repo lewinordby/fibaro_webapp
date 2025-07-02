@@ -17,14 +17,18 @@ def get_db_conn():
     )
 
 @app.get("/", response_class=HTMLResponse)
-def read_root(request: Request):
+async def read_root(request: Request):
     try:
         conn = get_db_conn()
         cur = conn.cursor()
         cur.execute("SELECT timestamp, temperature FROM temperatures ORDER BY timestamp DESC LIMIT 100")
-        rows = cur.fetchall()
+        rows_raw = cur.fetchall()
         cur.close()
         conn.close()
+
+        # Konverter datetime til ISO-streng
+        rows = [(ts.isoformat(), temp) for ts, temp in rows_raw]
+
         return templates.TemplateResponse("index.html", {"request": request, "rows": rows})
     except Exception as e:
-        return HTMLResponse(content=f"<h1>Feil: {e}</h1>", status_code=500)
+        return HTMLResponse(f"<h1>Database error: {e}</h1>", status_code=500)
