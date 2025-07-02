@@ -1,33 +1,30 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
 import psycopg2
 import os
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-DB_PARAMS = {
-    "dbname": os.getenv("DB_NAME", "fibaro_logs"),
-    "user": os.getenv("DB_USER", "fibaro_logs_user"),
-    "password": os.getenv("DB_PASS", "hsrB9suM6GeeqzJlaYqFiMqGVdZAIX2a"),
-    "host": os.getenv("DB_HOST", "dpg-d1iggjer433s73aj7ol0-a.frankfurt-postgres.render.com"),
-    "port": os.getenv("DB_PORT", 5432)
-}
+def get_db_conn():
+    return psycopg2.connect(
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASS"),
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT")
+    )
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
+def read_root(request: Request):
     try:
-        conn = psycopg2.connect(**DB_PARAMS)
+        conn = get_db_conn()
         cur = conn.cursor()
-        cur.execute('SELECT timestamp, temperature FROM temperature_log ORDER BY timestamp DESC LIMIT 100')
+        cur.execute("SELECT timestamp, temperature FROM temperatures ORDER BY timestamp DESC LIMIT 100")
         rows = cur.fetchall()
         cur.close()
         conn.close()
+        return templates.TemplateResponse("index.html", {"request": request, "rows": rows})
     except Exception as e:
-        rows = []
-        print("DB error:", e)
-
-    return templates.TemplateResponse("index.html", {"request": request, "logs": rows})
+        return HTMLResponse(content=f"<h1>Feil: {e}</h1>", status_code=500)
