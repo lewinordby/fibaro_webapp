@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: fibaro-webapp
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: ./start.sh
+    envVars:
+      - key: DB_NAME
+        value: fibaro_logs
+      - key: DB_USER
+        value: fibaro_logs_user
+      - key: DB_PASS
+        value: hsrB9suM6GeeqzJlaYqFiMqGVdZAIX2a
+      - key: DB_HOST
+        value: dpg-d1iggjer433s73aj7ol0-a.frankfurt-postgres.render.com
+      - key: DB_PORT
+        value: 5432
