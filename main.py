@@ -1,11 +1,9 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 import psycopg2
 import os
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
 
 def get_db_conn():
     return psycopg2.connect(
@@ -16,19 +14,20 @@ def get_db_conn():
         port=os.getenv("DB_PORT")
     )
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
+@app.get("/temperatures")
+async def get_temperatures():
     try:
         conn = get_db_conn()
         cur = conn.cursor()
-        cur.execute("SELECT timestamp, temperature FROM temperatures ORDER BY timestamp DESC LIMIT 100")
-        rows_raw = cur.fetchall()
+        cur.execute("SELECT timestamp, temperature FROM temperatures ORDER BY timestamp DESC")
+        rows = cur.fetchall()
         cur.close()
         conn.close()
 
-        # Konverter datetime til streng (ISO-format)
-        rows = [(ts.isoformat(), temp) for ts, temp in rows_raw]
+        # Lag en liste med ordbøker og formater datetime som ISO-streng
+        result = [{"timestamp": ts.isoformat(), "temperature": temp} for ts, temp in rows]
 
-        return templates.TemplateResponse("index.html", {"request": request, "rows": rows})
+        return JSONResponse(content=result)
+
     except Exception as e:
-        return HTMLResponse(f"<h1>Database error: {e}</h1>", status_code=500)
+        return JSONResponse(status_code=500, content={"error": str(e)})
