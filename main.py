@@ -22,7 +22,7 @@ async def read_root(request: Request):
     try:
         conn = psycopg2.connect(**DB_PARAMS)
         cur = conn.cursor()
-        cur.execute("SELECT timestamp, temperature FROM temperature_logs ORDER BY timestamp DESC LIMIT 100")
+        cur.execute("SELECT timestamp, temperature FROM temperature_log ORDER BY timestamp DESC LIMIT 100")
         rows = cur.fetchall()
         cur.close()
         conn.close()
